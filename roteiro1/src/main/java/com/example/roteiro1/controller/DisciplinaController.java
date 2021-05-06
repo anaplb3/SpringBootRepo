@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/v1/api/disciplinas")
@@ -23,33 +24,26 @@ public class DisciplinaController {
         return new ResponseEntity<>(disciplinaService.getDisciplinas(), HttpStatus.OK);
     }
 
-    @PostMapping
-    public ResponseEntity<?> postDisciplinas(@RequestBody Disciplina disciplina) {
-        disciplina.setId(disciplinaService.getDisciplinas().size());
-        disciplinaService.createDisciplina(disciplina);
-        return new ResponseEntity<>(disciplina, HttpStatus.OK);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getDisciplinaById(@PathVariable int id) {
-        Disciplina d = disciplinaService.getDisciplinabyID(id);
-        if(d == null) {
-            return new ResponseEntity<>(d, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(d, HttpStatus.NOT_FOUND);
+        try {
+            Disciplina disciplina = disciplinaService.getDisciplinabyID(id);
+            return new ResponseEntity<>(disciplina, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Id não foi encontrado.", HttpStatus.NOT_FOUND);
         }
 
     }
 
-    @GetMapping("/ranking")
-    public ResponseEntity<?> getRankedDisciplina() {
-        return new ResponseEntity<>(disciplinaService.getOrdered(), HttpStatus.OK);
+    @GetMapping("/ranking/notas")
+    public ResponseEntity<?> getDisciplinaOrdernadaNota() {
+        return new ResponseEntity<>(disciplinaService.getDisciplinaOrdernadaPorNota(), HttpStatus.OK);
     }
 
     @PatchMapping(value = "/{id}/nome", consumes = "application/json")
     public ResponseEntity<?> putDisciplinaNome(@PathVariable int id, @RequestBody String json) {
         JSONParser parser = new JSONParser();
-        JSONObject json2 = null;
+        JSONObject json2;
          try {
              json2 = (JSONObject) parser.parse(json);
          } catch (ParseException e) {
@@ -58,29 +52,27 @@ public class DisciplinaController {
 
         Disciplina d = disciplinaService.getDisciplinabyID(id);
         if (d == null) {
-            return new ResponseEntity<>(d, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Id não foi encontrado.", HttpStatus.NOT_FOUND);
         } else {
             d.setNome(json2.get("nome").toString());
             return new ResponseEntity<>(d, HttpStatus.OK);
         }
     }
 
-    @PatchMapping("/{id}/nota")
+    @PatchMapping("/nota/{id}")
     public ResponseEntity<?> putDisciplinaNota(@PathVariable int id, @RequestBody String json) {
-        JSONParser parser = new JSONParser();
-        JSONObject json2 = null;
         try {
-            json2 = (JSONObject) parser.parse(json);
+            JSONParser parser = new JSONParser();
+            JSONObject json2 = (JSONObject) parser.parse(json);
+            double notaJson = (double) json2.get("nota");
+            Disciplina disciplina = disciplinaService.acrescentaNota(id, notaJson);
+            return new ResponseEntity<>(disciplina, HttpStatus.OK);
         } catch (ParseException e) {
             return new ResponseEntity<>("Json não pôde ser formatado.", HttpStatus.BAD_REQUEST);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Id não foi encontrado.", HttpStatus.NOT_FOUND);
         }
-        Disciplina d = disciplinaService.getDisciplinabyID(id);
-        if (d == null) {
-            return new ResponseEntity<>(d, HttpStatus.NOT_FOUND);
-        } else {
-            d.setNota((double) json2.get("nota"));
-            return new ResponseEntity<>(d, HttpStatus.OK);
-        }
+
     }
 
     @DeleteMapping("/{id}")
@@ -88,6 +80,37 @@ public class DisciplinaController {
         Disciplina d = disciplinaService.getDisciplinabyID(id);
         disciplinaService.deleteDisciplina(id);
         return new ResponseEntity<>(d, HttpStatus.OK);
+    }
+
+    @PatchMapping("/likes/{id}")
+    public ResponseEntity<?> incrementaLike(@PathVariable int id) {
+        try {
+            Disciplina disciplina = disciplinaService.acrescentaLike(id);
+            return new ResponseEntity<>(disciplina, HttpStatus.OK);
+        } catch (Exception e) {
+            System.out.println("erro: " + e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/ranking/likes")
+    public ResponseEntity<?> getDisciplinaOrdernadaLike() {
+        return new ResponseEntity<>(disciplinaService.getDisciplinaOrdernadaPorLike(), HttpStatus.OK);
+    }
+
+    @PostMapping("/comentarios/{id}")
+    public ResponseEntity<?> adicionaComentario(@PathVariable int id, @RequestBody String json) {
+        try {
+            JSONParser parser = new JSONParser();
+            JSONObject json2 = (JSONObject) parser.parse(json);
+            String comentario = (String) json2.get("comentario");
+            Disciplina disciplina = disciplinaService.acrescentaComentario(id, comentario);
+            return new ResponseEntity<>(disciplina, HttpStatus.OK);
+        } catch (ParseException e) {
+            return new ResponseEntity<>("Json não pôde ser formatado.", HttpStatus.BAD_REQUEST);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("Id não foi encontrado.", HttpStatus.NOT_FOUND);
+        }
     }
 
 }

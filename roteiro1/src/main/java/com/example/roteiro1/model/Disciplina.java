@@ -1,21 +1,28 @@
 package com.example.roteiro1.model;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import java.util.List;
+
+@Entity
 public class Disciplina {
 
-    private int id;
+    @Id
+    @GeneratedValue
+    private long id;
     private String nome;
     private double nota;
+    @OneToMany
+    private List<Comentario> comentarios;
+    private int likes;
 
-    public Disciplina(String nome, double nota) {
-        this.nome = nome;
-        this.nota = nota;
-    }
-
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -35,8 +42,20 @@ public class Disciplina {
         this.nota = nota;
     }
 
-//    @Override
-//    public int compareTo(Disciplina disciplina) {
-//        return this.getNota() > disciplina.getNota();
-//    }
+    public List<Comentario> getComentarios() {
+        return comentarios;
+    }
+
+    public void setComentarios(List<Comentario> comentarios) {
+        this.comentarios = comentarios;
+    }
+
+    public int getLikes() {
+        return likes;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
+
 }
