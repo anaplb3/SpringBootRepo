@@ -2,17 +2,19 @@ package com.example.roteiro1.service;
 
 import com.example.roteiro1.model.Comentario;
 import com.example.roteiro1.model.Disciplina;
+import com.example.roteiro1.model.Like;
 import com.example.roteiro1.repository.ComentarioRepository;
 import com.example.roteiro1.repository.DisciplinaRepository;
+import com.example.roteiro1.repository.UsuarioRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javassist.bytecode.annotation.NoSuchClassError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.InputStream;
-import java.util.*;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class DisciplinaService {
@@ -22,10 +24,18 @@ public class DisciplinaService {
     @Autowired
     private ComentarioRepository comentarioRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
+
+
     @PostConstruct
     public void initDisciplinas() {
         ObjectMapper objectMapper = new ObjectMapper();
-        TypeReference<List<Disciplina>> typeReference = new TypeReference<List<Disciplina>>() {};
+        TypeReference<List<Disciplina>> typeReference = new TypeReference<List<Disciplina>>() {
+        };
         InputStream inputStream = ObjectMapper.class.getResourceAsStream("/json/disciplinas.json");
         try {
             List<Disciplina> disciplinas = objectMapper.readValue(inputStream, typeReference);
@@ -35,10 +45,17 @@ public class DisciplinaService {
         }
     }
 
-    public Disciplina acrescentaLike(long id) {
-        Disciplina disciplina = disciplinaRepository.findById(id).orElseThrow(NoSuchElementException::new);
-        int likes = disciplina.getLikes() + 1;
-        disciplina.setLikes( likes );
+    public Disciplina acrescentaLike(long disciplinaId, String emailUsuario) {
+
+        Disciplina disciplina = disciplinaRepository.findById(disciplinaId).orElseThrow(NoSuchElementException::new);
+        List<Like> likes = disciplina.getLikes();
+
+        Like like = new Like();
+        like.setDisciplina(disciplina);
+        like.setUsuario(usuarioRepository.findByEmail(emailUsuario));
+        likes.add(like);
+
+        disciplina.setLikes(likes);
         disciplinaRepository.save(disciplina);
         return disciplina;
     }

@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -83,9 +82,9 @@ public class DisciplinaController {
     }
 
     @PatchMapping("/likes/{id}")
-    public ResponseEntity<?> incrementaLike(@PathVariable int id) {
+    public ResponseEntity<?> incrementaLike(@PathVariable int id, @RequestBody String email) {
         try {
-            Disciplina disciplina = disciplinaService.acrescentaLike(id);
+            Disciplina disciplina = disciplinaService.acrescentaLike(id, email);
             return new ResponseEntity<>(disciplina, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println("erro: " + e.getMessage());

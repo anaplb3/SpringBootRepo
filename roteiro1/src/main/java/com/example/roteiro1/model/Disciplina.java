@@ -16,7 +16,8 @@ public class Disciplina {
     private double nota;
     @OneToMany
     private List<Comentario> comentarios;
-    private int likes;
+    @OneToMany
+    private List<Like> likes;
 
     public long getId() {
         return id;
@@ -50,12 +51,11 @@ public class Disciplina {
         this.comentarios = comentarios;
     }
 
-    public int getLikes() {
+    public List<Like> getLikes() {
         return likes;
     }
 
-    public void setLikes(int likes) {
+    public void setLikes(List<Like> likes) {
         this.likes = likes;
     }
-
 }
